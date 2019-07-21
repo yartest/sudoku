@@ -44,20 +44,20 @@ void SudokuFieldManager::GenerateField() {
 }
 
 void SudokuFieldManager::UnitTests() {
-	const unsigned n = 10;
-	UnitTest(n, SudokuMode::easy);
-	UnitTest(n, SudokuMode::medium);
-	UnitTest(n, SudokuMode::hard);
+	const unsigned timesNumber = 10;
+	UnitTest(timesNumber, SudokuMode::easy);
+	UnitTest(timesNumber, SudokuMode::medium);
+	UnitTest(timesNumber, SudokuMode::hard);
 
 	std::cout << "\n All unit tests completed successfully.";
 }
 
-void SudokuFieldManager::UnitTest(const unsigned n, const SudokuMode mode) {
+void SudokuFieldManager::UnitTest(const unsigned timesNumber, const SudokuMode mode) {
 
 	SudokuField fieldWithSpaces;
 
 	m_mode = mode;
-	for (unsigned i = 1; i <= n; ++i) {
+	for (unsigned i = 1; i <= timesNumber; ++i) {
 		std::cout << ConvertModeToString(m_mode) << " mode, testId: " << i << " is running" << '\n';
 		m_startingField.GenerateField(true);
 		m_workingField = m_startingField;

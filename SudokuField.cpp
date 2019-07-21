@@ -14,7 +14,7 @@ SudokuField::SudokuField() {
 
 SudokuField::SudokuField(const SudokuField& in) {
 	Initialize();
-	this->CopyValues(in);
+	CopyValues(in);
 }
 
 SudokuField& SudokuField::operator = (const SudokuField& in) {
@@ -22,43 +22,34 @@ SudokuField& SudokuField::operator = (const SudokuField& in) {
 	if (this == &in) {
 		return *this;
 	}
-	this->CopyValues(in);
+	CopyValues(in);
 	return *this;
 }
 
 // This is only for debug needs
 SudokuField& SudokuField::operator = (const std::string& in) {
 	const char *data = in.c_str();
-	unsigned size = in.size();
+	const unsigned zero = static_cast<unsigned>('0');
 
-	auto currentStart = m_elements.begin();
-	auto currentEnd = m_elements.end();
-	const char *dataEnd = data + size + 1;
-	while (currentStart != currentEnd && data < dataEnd) {
+	for (auto &element: m_elements) {
 		if (*data < '0' || *data > '9') {
 			throw std::runtime_error("SudokuField::operator = (const std::string& in) incorrect input string");
 		}
-		unsigned number = static_cast<unsigned>(*data) - static_cast<unsigned>('0');
-		(*(*currentStart)).m_value = number;
-		++currentStart;
+		unsigned number = static_cast<unsigned>(*data) - zero;
+		element.m_value = number;
 		++data;
 	}
 	return *this;
 }
 
 bool SudokuField::operator == (const SudokuField &in) const {
-	auto inStart = in.m_elements.cbegin();
-	auto inEnd = in.m_elements.cend();
-	auto currentStart = m_elements.begin();
-	auto currentEnd = m_elements.end();
-	while (currentStart != currentEnd && inStart != inEnd) {
-		if ((*(*currentStart)).m_value != (*(*inStart)).m_value) {
+
+	for (const auto &element : m_elements) {
+		auto res = std::find(std::begin(in.m_elements), std::end(in.m_elements), element);
+		if (res == in.m_elements.end()) {
 			return false;
 		}
-		++currentStart;
-		++inStart;
 	}
-
 	return true;
 }
 
@@ -92,7 +83,6 @@ void SudokuField::MakeSpaces(const SudokuMode &mode) {
 	}
 
 	std::uniform_int_distribution<> dis(min, max);
-	//std::uniform_int_distribution<> dis(min, max);
 	elementsCounter = dis(randomGenerator);
 
 	// make and shuffle vector with indexes
@@ -108,17 +98,17 @@ void SudokuField::MakeSpaces(const SudokuMode &mode) {
 	unsigned spacesCounter = SUDOKU_ELEMENTS_NUMBER - elementsCounter;
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // make empties
-// the core of the task is heere
+// the core of the task is here
 	unsigned i = 0, spaces = 0;
 	for (; i < SUDOKU_ELEMENTS_NUMBER && spaces < spacesCounter; ++i) {
 		// make a copy of a value
-		unsigned oldValue = m_elements.at(ids.at(i))->m_value;
+		unsigned oldValue = m_elements.at(ids.at(i)).m_value;
 		// assign zero to a random element on the field
-		m_elements.at(ids.at(i))->m_value = 0;
+		m_elements.at(ids.at(i)).m_value = 0;
 		// check if there are many collisions
 		unsigned solutionsCounter = this->HasCollisions();
 		if (solutionsCounter > 1) {
-			m_elements.at(ids.at(i))->m_value = oldValue;
+			m_elements.at(ids.at(i)).m_value = oldValue;
 		}
 		else {
 			++spaces;
@@ -140,7 +130,7 @@ unsigned SudokuField::HasCollisions() {
 
 unsigned SudokuField::GetAvailableElementsCount() const {
 	unsigned counter = std::count_if(m_elements.cbegin(), m_elements.cend(),
-			[](const std::shared_ptr<SudokuElement> &in) { return in->m_value > 0;});
+			[](const SudokuElement &in) { return in.m_value > 0;});
 	return counter;
 }
 
@@ -152,8 +142,7 @@ void SudokuField::PrintField() const {
 
 		for(unsigned j = 0; j < SUDOKU_FIELD_SIZE; ++j) {
 			auto index = i * SUDOKU_FIELD_SIZE + j;
-			auto element = m_elements.at(index);
-			auto value = element->m_value;
+			auto value = m_elements.at(index).m_value;
 
 			if (value > 0)  {
 				std::cout << value << " ";
@@ -188,10 +177,9 @@ void SudokuField::PrintDifference(const SudokuField& in) const {
 
 		for(unsigned j = 0; j < SUDOKU_FIELD_SIZE; ++j) {
 			auto index = i * SUDOKU_FIELD_SIZE + j;
-			auto element = m_elements.at(index);
-			auto value = element->m_value;
+			auto value = m_elements.at(index).m_value;
 
-			auto secondValue = in.m_elements.at(index)->m_value;
+			auto secondValue = in.m_elements.at(index).m_value;
 
 			if (value > 0)  {
 				if (value != secondValue) {
@@ -223,7 +211,7 @@ void SudokuField::PrintDifference(const SudokuField& in) const {
 std::string SudokuField::ConvertToString() const {
 	std::stringstream ostream;
 	for(auto element: m_elements) {
-		ostream << element->m_value;
+		ostream << element.m_value;
 	}
 	return ostream.str();
 }
@@ -238,41 +226,28 @@ void SudokuField::Initialize() {
 
 	for (unsigned i = 0; i < SUDOKU_FIELD_SIZE; ++i) {
 		for(unsigned j = 0; j < SUDOKU_FIELD_SIZE; ++j) {
-			auto element = std::make_shared<SudokuElement>(SudokuElement());
-			element->SetPosition({i, j});
-			m_elements.push_back(element);
+			m_elements.push_back(SudokuElement());
+			m_elements.rbegin()->SetPosition({i, j});
 		}
 	}
 }
 
 void SudokuField::CopyValues(const SudokuField &in) {
-	//m_elements.clear();
-	//auto copyElement = [] (const std::shared_ptr<SudokuElement> &in) -> std::shared_ptr<SudokuElement> {
-	//	return std::make_shared<SudokuElement>(SudokuElement(*in));
-	//};
-	//std::transform(in.m_elements.cbegin(), in.m_elements.cend(),
-	//		std::back_inserter(this->m_elements), copyElement);
-
-	auto inStart = in.m_elements.cbegin();
-	auto inEnd = in.m_elements.cend();
-	auto currentStart = m_elements.begin();
-	auto currentEnd = m_elements.end();
-	while (currentStart != currentEnd && inStart != inEnd) {
-		(*(*currentStart)).m_value = (*(*inStart)).m_value;
-		++currentStart;
-		++inStart;
+	size_t size = in.m_elements.size();
+	for (unsigned i = 0; i < size; ++i) {
+		m_elements.at(i).m_value = in.m_elements.at(i).m_value;
 	}
 }
 
-std::shared_ptr<SudokuElement> SudokuField::GetElementByIndex(unsigned index) const {
+SudokuElement SudokuField::GetElementByIndex(unsigned index) const {
 
 	if (index >= SUDOKU_ELEMENTS_NUMBER)
 		throw std::runtime_error("SudokuField::GetElementByIndex() incorrect index");
 
-	return this->m_elements.at(index);
+	return m_elements.at(index);
 }
 
-std::shared_ptr<SudokuElement> SudokuField::GetElementByPosition(const unsigned i, const unsigned j) const {
+SudokuElement SudokuField::GetElementByPosition(const unsigned i, const unsigned j) const {
 	unsigned index = i * SUDOKU_FIELD_SIZE + j;
 	return GetElementByIndex(index);
 }
@@ -281,7 +256,7 @@ bool SudokuField::GenerateFieldBackTracking(unsigned elementId, bool generate) {
 
 	auto &element = m_elements.at(elementId);
 
-	if (element->m_value != 0) {
+	if (element.m_value != 0) {
 		if (elementId == m_elements.size() - 1) {
 			return true;
 		}
@@ -290,9 +265,9 @@ bool SudokuField::GenerateFieldBackTracking(unsigned elementId, bool generate) {
 
 	std::unordered_set<int> currentValues;
 
-	for (const auto &relatedElement : element->m_relatedElements) {
+	for (const auto &relatedElement : element.m_relatedElements) {
 		auto value = this->GetElementByPosition
-				(relatedElement.i, relatedElement.j)->m_value;
+				(relatedElement.i, relatedElement.j).m_value;
 		currentValues.insert(value);
 	}
 
@@ -316,7 +291,7 @@ bool SudokuField::GenerateFieldBackTracking(unsigned elementId, bool generate) {
 	}
 
 	for (auto &newValue: newValues) {
-		element->m_value = newValue;
+		element.m_value = newValue;
 		if (elementId == m_elements.size() - 1) {
 			return true;
 		}
@@ -326,7 +301,7 @@ bool SudokuField::GenerateFieldBackTracking(unsigned elementId, bool generate) {
 		}
 	}
 
-	element->m_value = 0;
+	element.m_value = 0;
 	return false;
 }
 
@@ -338,7 +313,7 @@ bool SudokuField::HasCollisionsHelper(unsigned elementId) {
 	}
 
 	auto &element = m_elements.at(elementId);
-	if (element->m_value != 0) {
+	if (element.m_value != 0) {
 		if (elementId == m_elements.size() - 1) {
 			++m_collisionsCounter;
 			return false;
@@ -348,9 +323,8 @@ bool SudokuField::HasCollisionsHelper(unsigned elementId) {
 
 	std::unordered_set<int> currentValues;
 
-	for (auto &relatedElement : element->m_relatedElements) {
-		auto value = this->GetElementByPosition
-				(relatedElement.i, relatedElement.j)->m_value;
+	for (auto &relatedElement : element.m_relatedElements) {
+		auto value = GetElementByPosition(relatedElement.i, relatedElement.j).m_value;
 		currentValues.insert(value);
 	}
 
@@ -382,16 +356,16 @@ bool SudokuField::HasCollisionsHelper(unsigned elementId) {
 		if (m_collisionsCounter > 1) {
 			return false;
 		}
-		element->m_value = newValue;
+		element.m_value = newValue;
 		if (elementId == m_elements.size() - 1) {
 			++m_collisionsCounter;
-			element->m_value = 0;
+			element.m_value = 0;
 			return false;
 		}
 		HasCollisionsHelper(elementId + 1);
 	}
 
-	element->m_value = 0;
+	element.m_value = 0;
 	return false;
 }
 

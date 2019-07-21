@@ -8,8 +8,8 @@
 // SudokuField contains all elements on the field
 
 class SudokuField {
-	std::vector<std::shared_ptr<SudokuElement> > 	m_elements;
-	unsigned 										m_collisionsCounter = 0;
+	std::vector<SudokuElement> 	m_elements;
+	unsigned 					m_collisionsCounter = 0;
 
 public:
 	SudokuField();
@@ -47,9 +47,9 @@ private:
 	// Copy values from one filed to another
 	void CopyValues(const SudokuField &in);
 	// Get element by index inside the vector
-	std::shared_ptr<SudokuElement> GetElementByIndex(unsigned index) const ;
+	SudokuElement GetElementByIndex(unsigned index) const ;
 	// Get element by position on the field
-	std::shared_ptr<SudokuElement> GetElementByPosition(const unsigned i, const unsigned j) const;
+	SudokuElement GetElementByPosition(const unsigned i, const unsigned j) const;
 	// Recursive function that uses brute force to generate or solve sudoku field
 	bool GenerateFieldBackTracking(unsigned elementId, bool generate);
 	// Check all possible solutions (collisions)

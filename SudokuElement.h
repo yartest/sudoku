@@ -15,6 +15,9 @@ public:
 
 	void SetPosition(const SudokuPosition &inPos);
 
+	bool operator == (const SudokuElement &in) const
+	{ return m_pos == in.m_pos && m_value == in.m_value; }
+
 private:
 	void SetRelatedElements ();
 
