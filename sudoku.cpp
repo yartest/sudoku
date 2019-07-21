@@ -4,9 +4,9 @@
 
 int main() {
 	try {
-		//SudokuFieldManager::GetInstance().AskUserAndCheckMode();
-		//SudokuFieldManager::GetInstance().GenerateField();
-
+		SudokuFieldManager::GetInstance().AskUserAndCheckMode();
+		SudokuFieldManager::GetInstance().GenerateField();
+		/*
 		SudokuFieldManager::GetInstance().UnitTests();
 		if (true) {
 			SudokuField test1, test2;
@@ -19,7 +19,7 @@ int main() {
 			test2.GenerateField(false);
 			test2.PrintDifference(test1);
 		}
-
+		*/
 	}
 	catch (std::exception &e) {
 		std::cerr << " main(): an exception has been caught " << e.what() << '\n';
